@@ -1,0 +1,147 @@
+@model IEnumerable<OrderDashboard.Models.Inventario>
+
+@{
+    ViewData["Title"] = "Lista de Inventarios";
+    int currentPage = ViewData["CurrentPage"] as int? ?? 1;
+    int totalPages = ViewData["TotalPages"] as int? ?? 1;
+}
+
+<h2>Lista de Inventarios</h2>
+
+<div class="d-flex justify-content-end mb-3">
+    <a asp-action="Create" class="btn btn-success">Crear Nuevo</a>
+</div>
+
+<!-- Campo de búsqueda -->
+<form method="get" asp-action="Index" class="mb-3 d-flex">
+    <input type="text" name="searchString" class="form-control me-2" placeholder="Buscar por nombre..." value="@Context.Request.Query["searchString"]">
+    <button type="submit" class="btn btn-primary">Buscar</button>
+</form>
+
+<!-- Botón para descargar Excel -->
+<div class="mb-3">
+    <a asp-action="DescargarExcel" class="btn btn-success">Descargar Excel</a>
+</div>
+
+<!-- Tabla con filtros -->
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Descripción</th>
+            <th>Cantidad</th>
+            <th>Precio</th>
+            <th>Acciones</th>
+        </tr>
+        <!-- Fila de filtros dentro de la tabla -->
+        <tr id="filterRow">
+            <th><input type="text" id="filterNombre" class="form-control" placeholder="Filtrar..."></th>
+            <th><input type="text" id="filterDescripcion" class="form-control" placeholder="Filtrar..."></th>
+            <th><input type="text" id="filterCantidad" class="form-control" placeholder="Filtrar..."></th>
+            <th><input type="text" id="filterPrecio" class="form-control" placeholder="Filtrar..."></th>
+            <th><button id="clearFilters" class="btn btn-secondary btn-sm">Limpiar</button></th>
+        </tr>
+    </thead>
+    <tbody id="tablaInventario">
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Nombre</td>
+                <td>@item.Descripcion</td>
+                <td>@item.Cantidad_Stock</td>
+                <td>$@item.Precio_Unitario</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.InventarioId" class="btn btn-info">Detalles</a>
+                    <a asp-action="Edit" asp-route-id="@item.InventarioId" class="btn btn-warning">Editar</a>
+                    <button class="btn btn-danger" onclick="confirmDelete(@item.InventarioId)">Eliminar</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Paginación -->
+@if (totalPages > 1)
+{
+    <nav aria-label="Paginación">
+        <ul class="pagination justify-content-center">
+            <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                <a class="page-link" asp-action="Index" asp-route-page="@(currentPage - 1)">Anterior</a>
+            </li>
+
+            @for (int i = 1; i <= totalPages; i++)
+            {
+                <li class="page-item @(currentPage == i ? "active" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-page="@i">@i</a>
+                </li>
+            }
+
+            <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                <a class="page-link" asp-action="Index" asp-route-page="@(currentPage + 1)">Siguiente</a>
+            </li>
+        </ul>
+    </nav>
+}
+
+<!-- Modal de Confirmación de Eliminación -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                ¿Estás seguro de que deseas eliminar este registro?
+            </div>
+            <div class="modal-footer">
+                <form id="deleteForm" method="post" asp-action="DeleteConfirmed">
+                    <input type="hidden" name="id" id="deleteItemId" />
+                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Filtros en tiempo real
+        document.querySelectorAll("#filterRow input").forEach(input => {
+            input.addEventListener("input", function () {
+                let nombre = document.getElementById("filterNombre").value.toLowerCase();
+                let descripcion = document.getElementById("filterDescripcion").value.toLowerCase();
+                let cantidad = document.getElementById("filterCantidad").value.toLowerCase();
+                let precio = document.getElementById("filterPrecio").value.toLowerCase();
+
+                document.querySelectorAll("#tablaInventario tr").forEach(row => {
+                    let tdNombre = row.cells[0].textContent.toLowerCase();
+                    let tdDescripcion = row.cells[1].textContent.toLowerCase();
+                    let tdCantidad = row.cells[2].textContent.toLowerCase();
+                    let tdPrecio = row.cells[3].textContent.toLowerCase();
+
+                    row.style.display =
+                        (tdNombre.includes(nombre) &&
+                         tdDescripcion.includes(descripcion) &&
+                         tdCantidad.includes(cantidad) &&
+                         tdPrecio.includes(precio))
+                        ? "" : "none";
+                });
+            });
+        });
+
+        // Botón para limpiar filtros
+        document.getElementById("clearFilters").addEventListener("click", function () {
+            document.querySelectorAll("#filterRow input").forEach(input => input.value = "");
+            document.querySelectorAll("#tablaInventario tr").forEach(row => row.style.display = "");
+        });
+
+        // Confirmación de eliminación
+        function confirmDelete(id) {
+            document.getElementById("deleteItemId").value = id;
+            var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            deleteModal.show();
+        }
+    </script>
+}

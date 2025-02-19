@@ -1,0 +1,77 @@
+@model OrderDashboard.Models.Inventario
+
+@{
+    ViewData["Title"] = "Editar Inventario";
+}
+
+<h2>Editar Inventario</h2>
+
+@if (ViewData["Error"] != null)
+{
+    <div class="alert alert-danger">@ViewData["Error"]</div>
+}
+
+<form id="editForm" asp-action="Edit" method="post">
+    <input type="hidden" asp-for="InventarioId" />
+
+    <div class="form-group">
+        <label asp-for="Nombre" class="control-label"></label>
+        <input asp-for="Nombre" class="form-control" required />
+        <span asp-validation-for="Nombre" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Descripcion" class="control-label"></label>
+        <textarea asp-for="Descripcion" class="form-control" required></textarea>
+        <span asp-validation-for="Descripcion" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Cantidad_Stock" class="control-label"></label>
+        <input asp-for="Cantidad_Stock" type="number" class="form-control" required />
+        <span asp-validation-for="Cantidad_Stock" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Precio_Unitario" class="control-label"></label>
+        <input asp-for="Precio_Unitario" type="number" step="0.01" class="form-control" required />
+        <span asp-validation-for="Precio_Unitario" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mt-3">
+        <button type="button" class="btn btn-primary" onclick="openConfirmModal()">Guardar Cambios</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    </div>
+</form>
+
+<!-- MODAL DE CONFIRMACIÓN -->
+<div class="modal fade" id="confirmEditModal" tabindex="-1" aria-labelledby="confirmEditModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmEditModalLabel">Confirmar Edición</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                ¿Estás seguro de que quieres guardar los cambios en este inventario?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="submitEditForm()">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openConfirmModal() {
+            var confirmModal = new bootstrap.Modal(document.getElementById('confirmEditModal'));
+            confirmModal.show();
+        }
+
+        function submitEditForm() {
+            document.getElementById("editForm").submit();
+        }
+    </script>
+}
